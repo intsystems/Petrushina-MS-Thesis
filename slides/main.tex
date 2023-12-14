@@ -1,192 +1,132 @@
-\documentclass[10pt,pdf,hyperref={unicode}]{beamer}
-
-\mode<presentation>
-{
-\usetheme{boxes}
+\documentclass{beamer}
 \beamertemplatenavigationsymbolsempty
-
+\usecolortheme{beaver}
+\setbeamertemplate{blocks}[rounded=true, shadow=true]
 \setbeamertemplate{footline}[page number]
-\setbeamersize{text margin left=0.5em, text margin right=0.5em}
-}
-
+%
 \usepackage[utf8]{inputenc}
 \usepackage[english, russian]{babel}
-\usepackage{bm}
-\usepackage{multirow}
-\usepackage{ragged2e}
-\usepackage{indentfirst}
-\usepackage{multicol}
+\usepackage{amssymb,amsfonts,amsmath,mathtext}
+\usepackage[]{algorithmic}
 \usepackage{subfig}
-\usepackage{amsmath,amssymb}
-\usepackage{enumerate}
-\usepackage{mathtools}
-\usepackage{comment}
-\usepackage{multicol}
-
-\usepackage[all]{xy}
-
+\usepackage[all]{xy} % xy package for diagrams
+\usepackage{array}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows}
-
-\tikzstyle{name} = [parameters]
-\definecolor{name}{rgb}{0.5,0.5,0.5}
-
-\usepackage{caption}
-\captionsetup{skip=0pt,belowskip=0pt}
-
-\newtheorem{rustheorem}{Теорема}
-\newtheorem{russtatement}{Утверждение}
-\newtheorem{rusdefinition}{Определение}
-
-% colors
-\definecolor{darkgreen}{rgb}{0.0, 0.2, 0.13}
-\definecolor{darkcyan}{rgb}{0.0, 0.55, 0.55}
-
-\AtBeginEnvironment{figure}{\setcounter{subfigure}{0}}
-
-\captionsetup[subfloat]{labelformat=empty}
+\usepackage{multicol}% many columns in slide
+\usepackage{hyperref}% urls
+\usepackage{hhline}%tables
+% Your figures are here:
+\graphicspath{ {fig/} {../fig/} }
 
 %----------------------------------------------------------------------------------------------------------
+\title{Распознавание галлюцинаций языковых моделей}
+\author[К.\,Е. Петрушина]{Ксения Евгеньевна Петрушина}
+\institute{Московский физико-технический институт,\\ Сколковский институт науки и технологий}
 
-\title[Пример слайдов по работе]{Пример слайдов по работе \\ курса}
-\author{И.\,О.\,Фамилия}
+\date{\footnotesize
 
-\institute[]{Московский физико-технический институт}
-\date[2022]{\small 10\;февраля\;2022\,г.}
-
-%---------------------------------------------------------------------------------------------------------
+\par\smallskip\emph{Научный руководитель:} А.\,И.~Панченко
+\par\bigskip\small 2023}
+%----------------------------------------------------------------------------------------------------------
 \begin{document}
-
+%----------------------------------------------------------------------------------------------------------
 \begin{frame}
-\titlepage
+\thispagestyle{empty}
+\maketitle
 \end{frame}
-
-%----------------------------------------------------------------------------------------------------------
-\section{Слайд об исследованиях}
-\begin{frame}{Слайд об исследованиях}
-\bigskip
-Исследуется проблема \ldots.
-\begin{block}{Цель исследования~---}
-предложить метод \ldots.
+%-----------------------------------------------------------------------------------------------------
+\begin{frame}{Цель исследования}
+\begin{block}{Цель}
+  Распознавание галлюцинаций языковых моделей в задачах машинного перевода, перефразирования и определения значения слова.
 \end{block}
-\begin{block}{Требуется предложить}
-\justifying
-\begin{enumerate}[1)]
-\item метод \ldots,
-\item метод \ldots,
-\item метод \ldots.
-\end{enumerate}
-\end{block}
-\begin{block}{Решение}
-Для \ldots.
+\begin{block}{Задача}
+  Исследовать методы распознавания галлюцинаций в сгенерированном тексте и провести сравнительный анализ методов.
 \end{block}
 \end{frame}
+%-----------------------------------------------------------------------------------------------------
 
-%---------------------------------------------------------------------------------------------------------
-\section{Постановка задачи \ldots}
-\begin{frame}{Постановка задачи \ldots}
-Заданы
-\begin{enumerate}[1)]
-    \item признаки \ldots,
-    \item целевая переменная \ldots,
-    \item \ldots.
-\end{enumerate}
+\begin{frame}{Постановка задачи}
 
-\ldots
+Дана выборка
+\[\mathcal{D} = \{ (\text{src}_i, \text{hyp}_i, \text{label}_i) \}_{i=1}^N,\]
 
-\bigskip
+где $\text{src}_i$ -- входные данные языковой модели, $\text{hyp}_i$ -- ответ языковой модели, $\text{label}_i \in \{0, 1\}$ -- целевая переменная, обозначающая является ли ответ модели галлюцинацией.\\
 
-Требуется выбрать модель \ldots из множества
-\[
-	\mathfrak{G} = \left\{\mathbf{g}| \mathbf{g}:\mathbb{R}^{n} \to \mathbb{Y}^\prime\right\}.
-\]
-Оптимизационная задача \ldots:
-\[
-	\mathbf{g} = \arg\min_{\mathbf{g} \in \mathfrak{G}} \mathcal{L}\bigr(\ldots\bigr),
-\]
-где $\mathcal{L}$~--- функция ошибки.
+Необходимо построить модель классификации \[f(\text{src}_i, \text{hyp}_i) = p_i \in [0, 1]\]
 
-\bigskip
-\footnotetext[1]{\textit{Lopez-Paz D., Bottou L., Scholkopf B., Vapnik V.} Unifying distillation and privileged information // ICLR, 2016.}
-\footnotetext[2]{\textit{Hinton G., Vinyals O., Dean J.} Distilling the knowledge in a neural network // NIPS, 2015.}
-\end{frame}
+Метрикой качества является \[\text{Accuracy} =\dfrac1N \sum\limits_{i=1}^N (\mathbb{I} [f(\text{src}_i, \text{hyp}_i) \ge thr] = \text{label}_i)\]
 
-%----------------------------------------------------------------------------------------------------------
-\section{Предложенный метод \ldots}
-\begin{frame}{Предложенный метод \ldots}
-~\\[-1mm]
-Заданы
-\begin{enumerate}[1)]
-	\item \ldots,
-	\item \ldots.
-\end{enumerate}
 
-\medskip
-Параметрические семейства:
-\[
-\setlength\abovedisplayskip{0pt}
-\mathfrak{F} = \left\{\mathbf{f}| \mathbf{f} = \text{softmax}\bigr(\mathbf{v}\bigr(\mathbf{x}\bigr)/T\bigr), \quad \mathbf{v}: \mathbb{R}^{n} \to \mathbb{R}^K \right\},
-\]
-\[
-\mathfrak{G} = \left\{\mathbf{g}| \mathbf{g} = \text{softmax}\bigr(\mathbf{z}\bigr(\mathbf{x}\bigr)/T\bigr), \quad \mathbf{z}: \mathbb{R}^n \to \mathbb{R}^K \right\},
-\]
-где~\ldots.
-
-\medskip
-Функция ошибки
-\[
-\setlength\abovedisplayskip{0pt}
-\begin{aligned}
-   \mathcal{L}\bigr(\mathbf{g}\bigr) = &-\sum_{i=1}^{m}\underbrace{{\sum_{k=1}^{K}y^k_i\log\mathbf{g}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=1}}}_{\text{исходная функция потерь}}- \sum_{i=1}^{m}\underbrace{{\sum_{k=1}^{K}\mathbf{f}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=T_0}\log\mathbf{g}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=T_0}}}_{\text{слагаемое дистилляции}},
-\end{aligned}
-\setlength\belowdisplayskip{0pt}
-\]
-где~\ldots.
-
-Оптимальная модель выбирается из класса,
-$\hat{\mathbf{g}} = \arg\min\limits_{\mathbf{g} \in \mathfrak{G}_{\text{cl}}} \mathcal{L}\bigr(\mathbf{g}\bigr).$
-\end{frame}
-
-%----------------------------------------------------------------------------------------------------------
-\section{Анализ предложенного метода \ldots}
-\begin{frame}{Анализ предложенного метода \ldots}
-\justifying
-
-На графике показана зависимость значения параметров$w_i$ в зависимости от параметра~$l_1$-регуляризации~$C$.
-\begin{figure}[h!]
-\includegraphics[width=0.45\textwidth]{../figures/log_reg_cs_exp.eps}
-\includegraphics[width=0.45\textwidth]{../figures/log_reg_cs_exp.eps}
-\end{figure}
-
-С увеличением параметра регуляризации~$C$ число ненулевых параметров~$w_i$ уменьшается.
-
-\end{frame}
-
-%----------------------------------------------------------------------------------------------------------
-\section{Выводы}
-\begin{frame}{Выводы}
-\justifying
-	\begin{enumerate}
-	\justifying
-	    \item Предложен \ldots.
-        \item Доказаны теоремы \ldots, 
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложен метод \ldots
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложены методы \ldots
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложена вероятностная интерпретации \ldots.
-	\end{enumerate}
 \end{frame}
 %----------------------------------------------------------------------------------------------------------
 
+\begin{frame}{Список литературы}
+\begin{enumerate}
+    \item Patrick Lewis et al. 2020. \textcolor{blue}{Retrieval-augmented generation for knowledge-intensive NLP tasks}. % In Proceedings of the 34th International Conference on Neural Information Processing Systems (NIPS'20). Curran Associates Inc., Red Hook, NY, USA, Article 793, 9459–9474.
+    
+    URL: \url{https://dl.acm.org/doi/pdf/10.5555/3495724.3496517}
+
+    \item David Dale et al. 2023. \textcolor{blue}{HalOmi: A Manually Annotated Benchmark for Multilingual Hallucination and Omission Detection in Machine Translation}.
+    
+    URL: \url{https://arxiv.org/pdf/2305.11746.pdf}
+
+    %\item Nikolay Babakov, David Dale, Varvara Logacheva, and Alexander Panchenko. 2022. \textcolor{blue}{A large-scale computational study of content preservation measures for text style transfer and paraphrase generation}. %In Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics: Student Research Workshop, pages 300–321, Dublin, Ireland. Association for Computational Linguistics.
+
+    \item Albert Q. Jiang et al. 2023. \textcolor{blue}{Mistral 7B}.
+    
+    URL: \url{https://arxiv.org/pdf/2310.06825.pdf}
+
+  \end{enumerate}
+\end{frame}
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Результаты экспериментов}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c|c}
+    Method & Accuracy \\
+    \hline
+    Sentence transformer & \textbf{0.696}\\
+    BERTScore f1 & 0.656\\
+    Mistral-7B & 0.640\\
+    \end{tabular}
+    \caption{Paraphrase generation task}
+    \label{tab:pg}
+\end{table}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c|c}
+    Method & Accuracy \\
+    \hline
+    LaBSE-en-ru & 0.786 \\
+    BLASER 2.0-QE & \textbf{0.802} \\
+    Mistral-7B & 0.684\\
+    \end{tabular}
+    \caption{Machine translation task}
+    \label{tab:mt}
+\end{table}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c|c}
+    Method & Accuracy \\
+    \hline
+    Token-RAG + BERTScore f1 & 0.598 \\
+    Wiktionary definition + E5 & \textbf{0.654} \\
+    \end{tabular}
+    \caption{Definition modeling task}
+    \label{tab:dm}
+\end{table}
+
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Заключение}
+  \begin{itemize}
+      \item Были рассмотрены различные подходы к задаче распознавания галлюцинаций языковых моделей
+      \item Основной фокус исследования направлен на измерение похожести предложений
+  \end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------------------------
 \end{document} 
