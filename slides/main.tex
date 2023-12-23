@@ -106,6 +106,28 @@ The existing methods do not investigate whether there is enough information in $
 \end{frame}
 %----------------------------------------------------------------------------------------------------------
 
+\begin{frame}{Consistency similarity}
+
+
+Consistency similarity measure is defined by
+\[{sim}_{\mathbf{C}} (\mathbf{s}_i, \mathbf{h}_i) = {sim}(\mathbf{s}_i, \mathbf{f}^{-1}(\mathbf{h}_i))).\]
+
+\begin{enumerate}
+    \item The arguments of the function lie in the same space $\mathbf{T_S}^{L_s}$.
+    \item This similarity measure depends on how well the information about $\mathbf{s}_i$ is preserved in $\mathbf{h}_i$ and what the model $\mathbf{f}^{-1}$ can restore.
+\end{enumerate}
+
+\begin{hyp}
+\begin{enumerate}
+    \item \[\mathbb{E}_{\mathbf{f}^{-1}(\mathbf{h}_i)} {sim}_{\mathbf{C}} (\mathbf{s}_i, \mathbf{h}_i) \le{sim} (\mathbf{s}_i, \mathbf{h}_i) \]
+    \item \[\mathbb{E}_{\mathbf{s}_i \sim \mathbf{T_s}^{L_s}, \mathbf{h}_i \sim f(\mathbf{s}_i)} \{\mathbb{I}[sim_\text{C}(\mathbf{s}_i, \mathbf{h}_i) \ge \text{thr}] = y_i \} \ge \]
+    \[\mathbb{E}_{\mathbf{s}_i \sim \mathbf{T_s}^{L_s}, \mathbf{h}_i \sim f(\mathbf{s}_i)} \{\mathbb{I}[sim(\mathbf{s}_i, \mathbf{h}_i) \ge \text{thr}] = y_i \}\]
+\end{enumerate}    
+\end{hyp}
+
+\end{frame}
+%----------------------------------------------------------------------------------------------------------
+
 \begin{frame}{Computational experiment}
 
 \subsection{Data}
