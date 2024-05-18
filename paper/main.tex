@@ -4,12 +4,16 @@
 
 \documentclass[11pt]{article}
 
-% Remove the "review" option to generate the final version.
-\usepackage{ACL2023}
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[preprint]{acl}
 
 % Standard package includes
 \usepackage{times}
 \usepackage{latexsym}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
 
 % For proper rendering and hyphenation of words containing Latin characters (including in bib files)
 \usepackage[T1]{fontenc}
@@ -20,8 +24,8 @@
 % This assumes your files are encoded as UTF8
 \usepackage[utf8]{inputenc}
 
-% This is not strictly necessary, and may be commented out.
-% However, it will improve the layout of the manuscript,
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
 % and will typically save some space.
 \usepackage{microtype}
 
@@ -30,11 +34,9 @@
 % the typewriter font.
 \usepackage{inconsolata}
 
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{mathtools}
-
-\usepackage{todonotes}
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
 
 \newtheorem{hyp}{Hypothesis}
 
@@ -44,7 +46,8 @@
 %
 % and set <dim> to something 5cm or larger.
 
-\title{Consistency text similarity on the example of the task of recognizing hallucinations of language models}
+\title{Quantifying image realism via language model
+reasoning}
 
 % Author information can be set in various styles:
 % For several authors from the same institution:
@@ -56,182 +59,186 @@
 % \author{Author 1 \\ Address line \\  ... \\ Address line
 %         \And  ... \And
 %         Author n \\ Address line \\ ... \\ Address line}
-% To start a seperate ``row'' of authors use \AND, as in
+% To start a separate ``row'' of authors use \AND, as in
 % \author{Author 1 \\ Address line \\  ... \\ Address line
 %         \AND
 %         Author 2 \\ Address line \\ ... \\ Address line \And
 %         Author 3 \\ Address line \\ ... \\ Address line}
 
 \author{Kseniia Petrushina \\
-  % Affiliation / Address line 1 \\
-  \texttt{petrushina.ke@phystech.edu}}
+  MIPT \\
+  Skoltech \\
+  \texttt{petrushina.ke@phystech.edu} \\}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
 
 \begin{document}
 \maketitle
 \begin{abstract}
 
-This work explores the recognition of hallucinations of language models in the tasks of machine translation, paraphrasing and modeling definitions. Approaches to solving this problem are based on measures of semantic similarity between sentences. We compare different approaches to the solution, and also propose a new measure of proximity - \textit{consistency similarity}.
+Quantifying the realism of images remains a challenging problem in the field of artificial intelligence. We introduce a novel method to assess image realism using language models and natural language inference. Our approach involves extracting atomic facts from images via multimodal instruct models, computing pairwise entailment scores between these facts, and aggregating these scores to derive a single reality score. This method identifies contradictions within the image, indicating the presence of unusual or implausible scenarios. Unlike traditional fact-checking or deep-fake detection techniques, our focus is on the \textit{weirdness} or impossibility of the depicted scenes, rather than determining the authenticity of the content. Applying this method to a benchmark dataset, we demonstrate its effectiveness in capturing the degree of realism and providing explanatory insights into the nature of visual contradictions. This work advances the understanding of visual realism and commonsense reasoning in AI.
 
 \end{abstract}
 
 \section{Introduction}
 
-Currently, there is a real boom in language models that are able to perform various tasks of Natural Language Generation (NLG).
+The last decade has witnessed significant advancements in the field of artificial intelligence, particularly in the generation of realistic data across various modalities such as images, text, audio, and video. Thus, with the improvement of generative models, the problem of recognizing realistic images arises.
 
-A hallucination of the language model is a grammatically correctly generated response, which, however, contains incorrect information. And currently, language models apt to give a fluent answer, in particular due to the fact that they adjusted to metrics that pay attention to the sonority of the answer, rather than its factual component. In the tasks of paraphrasing and machine translation, hallucination is different meanings in the generated and original sentences. Also, hallucinations may be discrepancies between the model's response and the actual data from the external knowledge base.
+Fact-checking is a critical task in the era of information overload and rampant misinformation \cite{fact_checking}. The goal of fact-checking is to verify the truthfulness of claims by retrieving and analyzing relevant evidence from various sources. This task is essential for maintaining the integrity of information disseminated through media and social networks. Accurate fact-checking helps prevent the spread of false information, which can have significant social, political, and economic consequences.
+
+In parallel to fact-checking, the detection of deep-fakes and image manipulations has become increasingly important \cite{image_forgery}. The prevalence of easy-to-use image editing tools has led to a surge in the production and dissemination of fake and altered images. These manipulations can range from simple copy-move and splicing attacks to sophisticated deep-fakes that are often indistinguishable from genuine content.
+
+But there is another side to the realism of images, the human perception of the surrounding world and its laws. Quantifying the realism of images involves more than just detecting forgeries or verifying authenticity; it encompasses assessing how closely an image aligns with real-world expectations. The intrinsic challenges arise in designing functions that can reliably differentiate between realistic and unrealistic data \cite{realistic_image}. L. Theis argues that a good generative model alone is insufficient to solve this problem. Instead, he proposes the concept of a universal critic — a theoretical ideal that can serve as a guide for practical implementations and a tool for analyzing current attempts to measure realism. And there is the need to consider not just the visual fidelity of images but also the contextual and commonsense coherence. An image might appear visually convincing but still fail to align with our understanding of how the world works, thereby diminishing its realism.
+
+Building on the concept of image realism, the challenge extends to evaluating whether the content of an image adheres to commonsense expectations. This can be done on a dataset specifically designed to test visual commonsense \cite{whoops}. The WHOOPS! dataset includes images that deliberately defy common sense, such as famous soccer players playing chess instead of competing on a football field. Humans can easily recognize and interpret these unconventional images, but AI models often struggle with this task. This dataset evaluates AI's ability to understand and explain why certain images are unusual. Tasks include image captioning, cross-modal matching, visual question answering, and explanation generation, where models must identify and articulate why an image defies commonsense expectations.
+
+Necessity of higher-order cognition in visual understanding can be also explained in \cite{visual_commonsense_reasoning}. This study formalizes the task of Visual Commonsense Reasoning, requiring machines not only to answer challenging questions about images but also to provide justifications for their answers.
+
+In the field of NLP, research has been conducted on the numerical evaluation of factual precision in generated long texts \cite{min-etal-2023-factscore}. The metric is obtained as follows: the generated statement was divided into many atomic facts, which were checked for compliance with some database and the proportion of reliable facts was calculated.
+
+While traditional fact-checking and deep-fake detection focus on the authenticity of content, our work explores more the concept of \textit{weirdness} in images. The objective is not merely to determine whether an image is real or generated but to assess how plausible the depicted scenario is within the context of the real world. This involves identifying and analyzing contradictions within the image that indicate unusual or impossible scenes. We employ a strategy of selecting atomic facts, but for common sense research we do not compare them with an external source and find contradictions between them.
 
 \section{Problem statement}
 
-\textit{Language model} is a function 
-\[\mathbf{f}: \mathcal{P}(\mathbf{T_s}^{L_s})\to \mathcal{P}(\mathbf{T_h}^{L_h}),\]
-where $\mathbf{s} \in \mathbf{T_s}^{L_s}$ is a sequence of $L_s$ tokens from the overall set of source tokens $\mathbf{T_s}$, $\mathbf{h} \in \mathbf{T_h}^{L_h}$ is a sequence of $L_h$ tokens from the overall set of hypothesis tokens $\mathbf{T_h}$. And $\mathcal{P}(\mathbf{T}^{L})$ is the probability distribution over $\mathbf{T}^{L}$. $\mathbf{s}_i$ is called \textit{source sentence} and $\mathbf{h}_i$ is called \textit{model hypothesis}.
+Given unknown \textit{real} and \textit{weird} probability distributions \[\mathrm{P}_\text{real}(\textbf{x}): \mathbb{R}^{n\times n} \to [0, 1] \quad \mathrm{P}_\text{weird}(\textbf{x}): \mathbb{R}^{n\times n} \to [0, 1]\]
+and samples from the distributions
+\[\mathcal{D}_\text{r} = \{\textbf{x}^i_\text{r}\;|\; \textbf{x}^i_\text{r} \sim \mathrm{P}_\text{real}(\textbf{x})\}_{i=1}^N\]
+\[\mathcal{D}_\text{w} = \{\textbf{x}^i_\text{w}\;|\; \textbf{x}^i_\text{w}\sim \mathrm{P}_\text{weird}(\textbf{x})\}_{i=1}^N.\]
+We need to find a \textit{reality-check} function
+\[\text{f}_\text{weird}: \mathbb{R}^{n\times n} \to \mathbb{R}_+\]
+that defines the realism score, that is for \textit{real} image $\textbf{x}_\text{r}$ and \textit{weird} image $\textbf{x}_\text{w}$, provided that they are close in a sense of similarity measure $\langle \cdot, \cdot \rangle$:
+\[ \langle \textbf{x}_\text{r}, \textbf{x}_\text{w}\rangle \le \varepsilon,\]
+the following holds true
+\[\text{f}_\text{weird}(\textbf{x}_\text{r}) < \text{f}_\text{weird}(\textbf{x}_\text{w}).\]
 
-Assuming $\mathbf{f}$ has the following output probabilities \[\mathcal{P}(\mathbf{f}(\mathbf{s}) = \mathbf{h}) = p_{\mathbf{sh}}\]
-we can define function \[\mathbf{f}^{-1}: \mathcal{P}(\mathbf{T_h}^{L_h}) \to \mathcal{P}(\mathbf{T_s}^{L_s})\]
-Then it is said that $\mathbf{h} = \mathbf{f}(\mathbf{s})$ is a \textit{hallucination} of the language model $\mathbf{f}$ with the input $\mathbf{s}$ if \[p(\mathbf{f}^{-1}(\mathbf{f}(\mathbf{s})) = \mathbf{s}) = 0.\] This is illustrated in the Figure \ref{fig:hal}.
+\section{Proposed method}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.4\textwidth]{images/hallucination.png}
-    \caption{An illustration of a model's hallucination. $\mathbf{s}$ does not belong to the set of possible outputs of $\mathbf{f}^{-1}(\mathbf{h})$}
-    \label{fig:hal}
-\end{figure}
+We divide \textit{reality-check} function $\text{f}$ computation into three steps:
 
-The task of recognizing hallucinations is to find a function $sim: \mathbf{T_s}^{L_s} \times \mathbf{T_h}^{L_h} \to [0, 1]$, such that
-\[\mathbb{E}_{\mathbf{s}_i \sim \mathbf{T_s}^{L_s}, \mathbf{h}_i \sim f(\mathbf{s}_i)} \{\mathbb{I}[sim(\mathbf{s}_i, \mathbf{h}_i) \ge \text{thr}] = y_i \} \to \max\limits_{sim, \text{thr}},\]
-where $y_i$ denotes the presence of a hallucination.
+\subsection{Extracting atomic facts}
 
-The function $sim(\mathbf{s}, \mathbf{h})$ is perceived as similarity measure between source sentence $\mathbf{s}$ and model hypothesis $\mathbf{h}$.
+Using multi-modal model $\text{f}_\text{cap}: \mathbb{R}^{n\times n} \to \mathrm{T}^{m\times L}$ we obtain $m$ sequences of language tokens of length $L$, which describe the details about the image:
+\[\text{f}_\text{cap}(\textbf{x}) = \mathrm{F}_\text{A} = \{[t^i_1, \dots, t^i_L]\;|\; i \in \overline{1, m} \} \]
 
-\section{Theory}
+\subsection{Pairwise natural language inference}
 
-\subsection{Existing solutions}
+For each ordered pair of facts $(f_i, f_j) \in \mathrm{F}_\text{A} \times \mathrm{F}_\text{A}$ we calculate entailment score via $\text{f}_\text{nli}: \mathrm{T}^{L}\times \mathrm{T}^{L} \to [-1, 1]$.
+The results are presented in the form of a matrix
+\[S_{ij} = \text{f}_\text{nli}(f_i, f_j). \]
 
-The tasks of paraphrasing and textual style transfer rely on measuring similarity between sentences \cite{babakov-etal-2022-large}. This is done using different functions $sim: \mathbf{T_s}^{L_s} \times \mathbf{T_h}^{L_h} \to [0, 1]$.
+\subsection{Aggregating pairwise scores}
 
-These content preserving metrics can be divided into the following groups:
+We take the sum of matrix elements, if both pairs $(f_i, f_j)$ and $(f_j, f_i)$ are contradictory and average it by the number of pairs:
+\[\text{f}_\text{agg} (S) = - \dfrac{1}{m^2} \sum\limits_{i < j} (S_{ij} + S_{ji}) \mathbb{I} [S_{ij}, S_{ji} < 0] \]
 
-\textbf{Words or characters n-grams} The similarity of the sentences can be calculated based on n-gramms, i.e. all possible subsequences of $\mathbf{s}$ and $\mathbf{h}$ of length $n$. \[N_{s} \subset \mathbf{T_s}^{n}, \quad N_{h} \subset \mathbf{T_h}^{n} \]
-\[sim_\text{BLEU}(\mathbf{s}, \mathbf{h}) = \frac{|N_{s} \cap N_{h}|}{|N_{h}|}\]
+\subsection{Resulting metric}
 
-\textbf{Similarity between static embeddings} A vector space $\mathbb{R}^d$ can be a more convenient representation of the text for calculating distances. So, the $\mathbf{emb}: \mathbf{T_s} \cup \mathbf{T_h} \to \mathbb{R}^d$ function is introduced. Vector from the sentence $\mathbf{s}$ will be obtained according to the following formula: \[\mathbf{v_s} = \dfrac{1}{L_s} \sum\limits_{i=1}^{L_s} \mathbf{emb} (\mathbf{s}[i]) \]
-Then the similarity is: \[sim_\text{cos}(\mathbf{s}, \mathbf{h}) = \cos (\mathbf{v_s}, \mathbf{v_h})\]
-
-\textbf{Similarity between contextualized embeddings} Vector representation of a token can depend on the context, i.e. surrounding tokens. Contextualized embeddings are obtained using model $\mathbf{enc}: \mathbf{T_s}^{L_s} \to \mathbb{R}^{L_s \times d}$. $\mathbf{v_s} = \{v_1, \dots, v_{L_s}\}$, $\mathbf{v_h} = \{\hat{v}_1, \dots, \hat{v}_{L_h}\}$. BERTScore \cite{zhang-bertscore} is calculated as \[R = \dfrac{1}{L_s} \sum\limits_{v_i \in \mathbf{v_s}} \max\limits_{\hat{v}_j \in \mathbf{v_h}} v^T_i \hat{v}_j \; P = \dfrac{1}{L_h} \sum\limits_{\hat{v}_j \in \mathbf{v_h}} \max\limits_{v_i \in \mathbf{v_s}} v^T_i \hat{v}_j \] 
-\[\text{BERTScore} = 2\dfrac{P R}{P + R}\]
-
-\textbf{Similarity between embeddings from bi-encoders} Encoder models $\mathbf{enc_s}: \mathbf{T_s}^{L_s} \to \mathbb{R}^d$, $\mathbf{enc_h}: \mathbf{T_h}^{L_h} \to \mathbb{R}^d$ implicitly get a vector representations of the entire sentences. The resulting similarity can be calculated as \[sim_\text{bi-enc}(\mathbf{s}, \mathbf{h}) = \cos (\mathbf{enc_s}(\mathbf{s}), \mathbf{enc_h}(\mathbf{h}))\]
-An example of such encoder model is LaBSE \cite{feng-etal-2022-language}.
-
-\textbf{Symmetric and asymmetric cross-encoders} Encoder model $\mathbf{enc}: \mathbf{T_s}^{L_s} \times \mathbf{T_h}^{L_h} \to \mathbb{R}^d$, uses cross-attention mechanism \cite{vaswani-attention} when processing two texts at the same time. It is symmetrical if $\mathbf{enc}(\mathbf{s}, \mathbf{h}) = \mathbf{enc}(\mathbf{h}, \mathbf{s})$, otherwise it is asymmetrical, this property is determined by the NLG problem being solved. The $\mathbf{clf}: \mathbb{R}^d \to [0, 1]$ function is also introduced, which determines the value of the similarity measure. \[sim_\text{cross-enc}(\mathbf{s}, \mathbf{h}) = \mathbf{clf}(\mathbf{enc}(\mathbf{s}, \mathbf{h}))\]
-
-\subsection{Proposed method}
-
-First, in the general case, the similarity function should be defined for objects from different spaces $\mathbf{T_s}^{L_s}$ and $\mathbf{T_h}^{L_h}$. Secondly, the existing methods do not investigate whether there is enough information in $\mathbf{h}$ to restore $\mathbf{s}$. Therefore, we suggest using a new metric - \textit{consistency similarity measure}.
-
-Consistency similarity measure is defined by
-\[{sim}_{\mathbf{C}} (\mathbf{s}_i, \mathbf{h}_i) = {sim}(\mathbf{s}_i, \mathbf{f}^{-1}(\mathbf{h}_i))),\]
-where ${sim}$ can be arbitrary method from the existing solutions.
-
-The benefits of the proposed formula are:
-
-\begin{enumerate}
-    \item The arguments of the function lie in the same space $\mathbf{T_S}^{L_s}$.
-    \item This similarity measure depends on how well the information about $\mathbf{s}_i$ is preserved in $\mathbf{h}_i$ and what the model $\mathbf{f}^{-1}$ can restore:
-    \begin{hyp}
-    \[\mathbb{E}_{\mathbf{f}^{-1}(\mathbf{h}_i)} {sim}_{\mathbf{C}} (\mathbf{s}_i, \mathbf{h}_i) \le{sim} (\mathbf{s}_i, \mathbf{h}_i) \]
-    \end{hyp}
-\end{enumerate}
+So, the final formula is \[\text{f}_\text{weird} = \text{f}_\text{agg} \circ \text{f}_\text{nli} \circ \text{f}_\text{cap}\]
 
 \begin{hyp}
-Consistency similarity measure $sim_\text{C}$ will be more stable and will give higher accuracy values.
+Resulting reality scores $R = \{\text{f}_\text{weird}(\textbf{x})\}$ will correlate with probability densities $P = \{\mathrm{P}_\text{real} (\textbf{x})\}$:
+\[\displaystyle r_{s} = \rho _{\operatorname {R} (\text{f}_\text{weird}(\textbf{x})),\operatorname {R} (\mathrm{P}_\text{real} (\textbf{x}))} \ge 0.5\]
 \end{hyp}
 
 \section{Computational experiments}
 
-\subsection{Data}
+\subsection{Dataset}
 
-We are given the dataset
-\[\mathcal{D} = \{(\mathbf{s}_i, \mathbf{h}_i, y_i) \}_{i=1}^N, \quad \mathbf{h}_i \in \mathbf{f}(\mathbf{s}_i).\]
+Dataset consists of 102 paired \textit{real} and \textit{weird} images from WHOOPS! benchmark. Examples are presented in \ref{fig:data}.
 
-The target variable $y_i \in \{0, 1\}$ defines a binary relation on the subset of the set $\mathbf{T_s}^{L_s} \times \mathbf{T_h}^{L_h}$ represented in $\mathcal{D}$ and, in our formulation, it indicates the occurrence of a hallucination in the $\mathbf{f}$ model at the input of $\mathbf{s}_i$ and the output of $\mathbf{h}_i$.
+\begin{figure*}[t]
+  \includegraphics[width=0.48\linewidth]{images/sleep_1.png} \hfill
+  \includegraphics[width=0.48\linewidth]{images/sleep_0.png}
+  \caption {Examples of \textit{real} and \textit{weird} images.}
+  \label{fig:data}
+\end{figure*}
 
-\subsection{Metrics}
+\subsection{Models}
 
-Given similarity predictions $\hat{y}_i = sim(\mathbf{s}_i, \mathbf{h}_i)$ the quality metrics in the hallucination recognition task are 
+We tested four models for obtaining atomic facts from the images: 
+LLaVa \cite{liu2023llava}, BLIP \cite{blip}, GPT-2 \cite{gpt2}, GPT-4o \cite{OpenAI_GPT4_2023}.
 
-\begin{enumerate}
-    \item The proportion of correct predictions:
-    \[\text{Accuracy} = \frac1N \sum\limits_{i=1}^N \mathbb{I}[\hat{y}_i \ge \text{thr}] = y_i\]
-    \item Spearman's rank correlation coefficient:
-    \[r_s= \rho_{R(Y), R(\hat{Y})} = \frac{\text{cov} (R(Y), R(\hat{Y}))}{\sigma_{R(Y)} \sigma_{R(\hat{Y})}}\]
-\end{enumerate}
+For solving the natural language inference task we chose sileod \cite{sileod22-tasknet}, MoritzLaurer \cite{laurer_less_2022} and t5-true \cite{honovich-etal-2022-true-evaluating}.
 
-\subsection{Paraphrase generation}
+\subsection{Results}
 
-The detection of hallucinations in the paraphrase generation (PG) task assumes that the sentences $\mathbf{s}_i,~\mathbf{h}_i$ are in the same space $\mathbf{T}^{N}$. 
+The comparison results of applying various models from the previous section are presented in Table \ref{tab:acc}.
 
-The results of the experiments are presented in the Table \ref{tab:pg}. $sim_\text{bi-enc}$ uses the Sentence Transformer \cite{reimers-gurevych-2019-sentence} as a text encoder. Consistency similarity $sim_\text{C}$ is calculated like $sim_\text{bi-enc} (\mathbf{s}_i, \mathbf{f}^{-1} (\mathbf{h}_i))$, since in the task of paraphrasing $\mathbf{f}^{-1} \equiv \mathbf{f}$.
+Reality scores for the whole dataset obtained using \textit{LLaVa} model for captioning and \textit{sileod} model for contradiction detection are presented in Figure \ref{fig:experiments}. Kolmogorov–Smirnov test shows that the distributions are different with one-sided alternative with p-value 4e-5.
 
-\begin{table}[]
+\begin{figure}[ht]
+  \includegraphics[width=\columnwidth]{images/output.png}
+  \caption{Scores distribution.}
+  \label{fig:experiments}
+\end{figure}
+
+\begin{table}[ht]
     \centering
-    \begin{tabular}{c|c c}
-    Method & Accuracy $\uparrow$ & $r_s \uparrow$ \\
-    \hline
-    $sim_\text{bi-enc}$ & 0.808 & 0.153 \\
-    $sim_\text{C}$ & \textbf{0.824} & \textbf{0.186} \\
+    \begin{tabular}{c|c c c }
+        % \hline
+         & sileod & MoritzLaurer & t5-true \\
+         \hline
+         LLaVa & \textbf{0.68} & 0.42 & 0.63 \\
+         BLIP & 0.53 &\textbf{ 0.68} & 0.53 \\
+         GPT-2 & 0.37 & 0.32 & 0.37 \\
+         GPT-4o & 0.63 & \textbf{0.68} & 0.37 \\
+         % \hline
     \end{tabular}
-    \caption{Hallucination recognition results in the PG task}
-    \label{tab:pg}
+    \caption{Accuracy of various methods.}
+    \label{tab:acc}
 \end{table}
 
-\subsection{Machine translation}
-
-In the machine translation (MT) task, texts are written in various languages. In this problem, $\mathbf{s}_i$ is in Russian and $\mathbf{h}_i$ is in English.
-
-The results of the experiments are presented in the Table \ref{tab:mt}. The considered methods also use bi-encoders, vector representations are obtained using LaBSE and SONAR \cite{Duquenne2023SONARSM} models. SONAR embeddings subsequently are processed with BLASER model. \[sim_\text{LaBSE} = cos (\mathbf{enc}_{L}(\mathbf{s}_i), \mathbf{enc}_{L}(\mathbf{h}_i))\] 
-\[sim_\text{BLASER-QE} = \mathbf{clf}_\text{B} (\mathbf{enc}_{S}(\mathbf{s}_i), \mathbf{enc}_{S}(\mathbf{h}_i))\]
-
-\begin{table}[]
-    \centering
-    \begin{tabular}{c|c c}
-    Method & Accuracy $\uparrow$ & $r_s \uparrow$ \\
-    \hline
-    $sim_\text{LaBSE}$ & 0.786 & 0.592 \\
-    $sim_\text{BLASER-QE}$ & \textbf{0.802} & \textbf{0.605} \\
-    \end{tabular}
-    \caption{Hallucination recognition results in the MT task}
-    \label{tab:mt}
-\end{table}
-
-% \subsection{Definition modeling}
-
-% In the definition modeling (DM) task, the model $\mathbf{f}$ must predict the meaning of a word $\mathbf{w}$ - subsequence of $\mathbf{s}_i$. The text $\mathbf{s}_i$ represents the use of the word of interest $\mathbf{w}$ in the context and $\mathbf{h}_i$ is a generated definition. This task can be reduced to exploring the similarity between sentences as follows: the retriever function $\mathbf{r}$ is introduced, which returns the definition of a word $\mathbf{w}$ using an external database. Then the detection of the hallucination of the model $\mathbf{f}$ when performing the DM task can be reformulated as calculating $sim(\mathbf{r}(\mathbf{w}), \mathbf{h}_i)$.
-
-% The results of the experiments are presented in the Table \ref{tab:dm}. The definitions of the words were obtained using the RAG-Token Model \cite{rag2020} and parsed from Wiktionary. The obtained definitions $\mathbf{r}_\text{RAG}(\mathbf{w})$ were compared with $\mathbf{h}_i$ using Sentence Transformer. And for Wiktionary definitions we used E5 encoder model \cite{wang2022text}.
-
-% \begin{table}[]
-%     \centering
-%     \begin{tabular}{c|c c}
-%     Method & Accuracy $\uparrow$ & $r_s \uparrow$ \\
-%     \hline
-%     $sim_\text{RAG}$ & 0.593 & - \\
-%     $sim_\text{Wiki}$ & \textbf{0.653} & - \\
-%     \end{tabular}
-%     \caption{Hallucination recognition results in the DM task}
-%     \label{tab:dm}
-% \end{table}
 
 \section{Conclusion}
-We conducted a review of existing methods for investigating the proximity between two texts, and also proposed a new method - consistency similarity, which draws attention to the correspondence of the semantic content of model hypothesis to information in source sentence. 
 
-\bibliography{anthology,custom}
-\bibliographystyle{acl_natbib}
+In conclusion, the proposed metric for quantifying image realism effectively differentiates between real and weird images by assessing their contextual and commonsense coherence. This approach not only advances the detection of image manipulations and deep-fakes but also enhances AI's ability to align with human perception, ensuring more reliable and nuanced evaluations of visual content. By focusing on how believable the scenarios in images are, we create smarter AI systems that can better understand and interpret the real world.
 
-\appendix
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\bibliography{custom}
 
-% \section{Appendix}
+% \appendix
+
+% \section{Example Appendix}
 % \label{sec:appendix}
 
+% This is an appendix.
 
 \end{document}
