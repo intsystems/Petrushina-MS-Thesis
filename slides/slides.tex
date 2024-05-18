@@ -30,7 +30,7 @@
 
 \date{\footnotesize
 
-\par\smallskip\emph{Scientific supervisor:} Alexander~Panchenko
+\par\smallskip\emph{Scientific supervisor:} Dr. Alexander~Panchenko
 \par\bigskip\small 2024}
 %----------------------------------------------------------------------------------------------------------
 \begin{document}
@@ -40,11 +40,23 @@
 \maketitle
 \end{frame}
 %-----------------------------------------------------------------------------------------------------
-\begin{frame}{Introduction}
+\begin{frame}{Purpose of the study}
 
-As AI-generated images become more convincing, distinguishing realism from fiction is increasingly challenging.\\
+\textbf{Problem}
 
-This work proposes quantifiable realism measure to detect contextual and commonsense inconsistencies in visual content. 
+As AI-generated images become more convincing, distinguishing realism from fiction is increasingly challenging.
+
+\textbf{Goal}
+
+Develop interpretable quantifiable realism measure to detect contextual and commonsense inconsistencies in visual content. 
+
+\textbf{Tasks}
+\begin{enumerate}
+    \item Explore existing approaches in detecting image manipulation and realism.
+    \item Develop a method for obtaining reality score using language model reasoning.
+    \item Validate the method on a dataset of pairs of real and \textit{weird} images.
+    \item Analyze the explanation of the \textit{weirdness} of the images.
+\end{enumerate}
 
 \end{frame}
 %-----------------------------------------------------------------------------------------------------
@@ -72,7 +84,7 @@ the following holds true
 \end{frame}
 %----------------------------------------------------------------------------------------------------------
 
-\begin{frame}{Probability \& Typicality}
+\begin{frame}{Existing methods}
 
 \begin{enumerate}
     \item \textbf{Probability}
@@ -89,7 +101,7 @@ the following holds true
 \end{frame}
 %----------------------------------------------------------------------------------------------------------
 
-\begin{frame}{Divergences}
+\begin{frame}{Existing methods}
 
 \begin{enumerate}
     \item[3.] \textbf{Adversarial losses} $f$-divergence between densities $p, q$
@@ -170,6 +182,28 @@ Resulting reality scores $R = \{\text{f}_\text{weird}(\textbf{x})\}$ will correl
 
 \begin{frame}{Results}
 
+$\text{f}_\text{weird} = 0.31$
+
+\begin{figure}[ht]
+  \includegraphics[width=1.05\textwidth]{images/interpret_sleep_1.png}
+  % \caption{}
+  \label{fig:experiments}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Results}
+
+$\text{f}_\text{weird} = 6.56$
+
+\begin{figure}[ht]
+  \includegraphics[width=1.05\textwidth]{images/interpret_sleep_0.png}
+  % \caption{}
+  \label{fig:experiments}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Results}
+
 \begin{table}[ht]
     \centering
     \begin{tabular}{|c|c c c |}
@@ -202,14 +236,17 @@ Resulting reality scores $R = \{\text{f}_\text{weird}(\textbf{x})\}$ will correl
 %----------------------------------------------------------------------------------------------------------
 \begin{frame}{Conclusion}
   \begin{itemize}
-      \item New interpretable method of quantifying image realism.
+    \item Explored existing approaches in detecting image realism.
+      \item Developed new interpretable method of quantifying image realism.
+      \item Computational experiments on detecting \textit{weird} images with different configurations.
       \item Hypotheses about properties of the \textit{reality-check} function.
-      \item Computational experiments with different configurations.
+      
   \end{itemize}
 
   \textbf{Future work}: 
   \begin{itemize}
       \item Conduct experiments with measuring correlation with other methods.
+      \item Analyse the interpretability of the proposed method in more details.
       \item Carry on comprehensive study of ablation.
   \end{itemize}
 \end{frame}
