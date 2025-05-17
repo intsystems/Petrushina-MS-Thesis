@@ -1,0 +1,6 @@
+[submodule "code/nli"]
+	path = code/nli
+	url = https://github.com/s-nlp/dont-fight-hallucinations.git
+[submodule "code/linear_probing"]
+	path = code/linear_probing
+	url = https://github.com/s-nlp/through-the-looking-glass.git
