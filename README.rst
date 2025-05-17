@@ -1,7 +1,6 @@
 .. class:: center
 
-    :Title: Detection of Multimodal Hallucinations Based on Internal
-Representations and Activations of Models
+    :Title: Detection of Multimodal Hallucinations Based on Internal Representations and Activations of Models
     :Type: Research work
     :Author: Kseniia Petrushina
     :Scientific supervisor: PhD in Computational Linguistics, Alexander Panchenko
